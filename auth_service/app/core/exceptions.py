@@ -25,7 +25,13 @@ class BaseHTTPException(HTTPException):
             self.message = message
 
         super().__init__(
-            status_code=self.status_code, detail=self.message, headers=self.headers
+            status_code=self.status_code,
+            detail={
+                "error_code": self.error_code,
+                "message": self.message,
+                "meta": self.meta,
+            },
+            headers=self.headers,
         )
 
 
@@ -45,7 +51,7 @@ class InvalidCredentialsError(BaseHTTPException):
     """
 
     status_code = 401
-    code = "INVALID_CREDENTIALS"
+    error_code = "INVALID_CREDENTIALS"
     message = "Incorrect email or password."
     headers = {"WWW-Authenticate": "Bearer"}
 
@@ -56,7 +62,7 @@ class InvalidTokenError(BaseHTTPException):
     """
 
     status_code = 401
-    code = "INVALID_TOKEN"
+    error_code = "INVALID_TOKEN"
     message = "The provided token is malformed or invalid."
     headers = {"WWW-Authenticate": "Bearer"}
 
@@ -67,7 +73,7 @@ class TokenExpiredError(BaseHTTPException):
     """
 
     status_code = 401
-    code = "TOKEN_EXPIRED"
+    error_code = "TOKEN_EXPIRED"
     message = "The access token has expired."
     headers = {"WWW-Authenticate": "Bearer"}
 
@@ -78,7 +84,7 @@ class UserNotFoundError(BaseHTTPException):
     """
 
     status_code = 404
-    code = "USER_NOT_FOUND"
+    error_code = "USER_NOT_FOUND"
     message = "Requested user was not found."
 
 
@@ -88,5 +94,5 @@ class PermissionDeniedError(BaseHTTPException):
     """
 
     status_code = 403
-    code = "PERMISSION_DENIED"
+    error_code = "PERMISSION_DENIED"
     message = "You do not have permission to perform this action."
