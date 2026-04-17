@@ -9,12 +9,24 @@ class BaseHTTPException(HTTPException):
     status_code = 400
     error_code = "APP_ERROR"
     message = "Application error"
+    headers = {}
 
-    def __init__(self, *, message: str | None = None, meta: dict | None = None):
+    def __init__(
+        self,
+        *,
+        message: str | None = None,
+        headers: dict | None = None,
+        meta: dict | None = None,
+    ):
         self.meta = meta or {}
+        self.headers = headers or {}
+
         if message is not None:
             self.message = message
-        super().__init__(self.message)
+
+        super().__init__(
+            status_code=self.status_code, detail=self.message, headers=self.headers
+        )
 
 
 class UserAlreadyExistsError(BaseHTTPException):
@@ -35,6 +47,7 @@ class InvalidCredentialsError(BaseHTTPException):
     status_code = 401
     code = "INVALID_CREDENTIALS"
     message = "Incorrect email or password."
+    headers = {"WWW-Authenticate": "Bearer"}
 
 
 class InvalidTokenError(BaseHTTPException):
@@ -45,6 +58,7 @@ class InvalidTokenError(BaseHTTPException):
     status_code = 401
     code = "INVALID_TOKEN"
     message = "The provided token is malformed or invalid."
+    headers = {"WWW-Authenticate": "Bearer"}
 
 
 class TokenExpiredError(BaseHTTPException):
@@ -55,6 +69,7 @@ class TokenExpiredError(BaseHTTPException):
     status_code = 401
     code = "TOKEN_EXPIRED"
     message = "The access token has expired."
+    headers = {"WWW-Authenticate": "Bearer"}
 
 
 class UserNotFoundError(BaseHTTPException):
