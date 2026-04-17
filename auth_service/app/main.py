@@ -1,6 +1,12 @@
-def main():
-    print("Hello from auth-service!")
+from fastapi import FastAPI
 
 
-if __name__ == "__main__":
-    main()
+app = FastAPI()
+
+
+@app.get("/health", tags=["system"])
+async def health():
+    """
+    Получает статус системы и название окружения.
+    """
+    return {"status": "OK", "env": "dev"}
