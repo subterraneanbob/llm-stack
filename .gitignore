@@ -8,3 +8,10 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Ruff
+.ruff_cache
+
+# Application-specific files
+.env
+*.db
