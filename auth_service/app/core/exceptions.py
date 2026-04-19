@@ -19,10 +19,12 @@ class BaseHTTPException(HTTPException):
         meta: dict | None = None,
     ):
         self.meta = meta or {}
-        self.headers = headers or {}
 
         if message is not None:
             self.message = message
+
+        if headers:
+            self.headers |= headers
 
         super().__init__(
             status_code=self.status_code,
@@ -35,6 +37,15 @@ class BaseHTTPException(HTTPException):
         )
 
 
+class BaseAuthError(BaseHTTPException):
+    """
+    Базовый класс для ошибок аутентификации.
+    """
+
+    status_code = 401
+    headers = {"www-authenticate": "Bearer"}
+
+
 class UserAlreadyExistsError(BaseHTTPException):
     """
     Ошибка при регистрации: пользователь уже существует.
@@ -45,37 +56,31 @@ class UserAlreadyExistsError(BaseHTTPException):
     message = "User with this identifier already exists."
 
 
-class InvalidCredentialsError(BaseHTTPException):
+class InvalidCredentialsError(BaseAuthError):
     """
     Ошибка авторизации: неверный e-mail или пароль.
     """
 
-    status_code = 401
     error_code = "INVALID_CREDENTIALS"
     message = "Incorrect email or password."
-    headers = {"WWW-Authenticate": "Bearer"}
 
 
-class InvalidTokenError(BaseHTTPException):
+class InvalidTokenError(BaseAuthError):
     """
     Ошибка авторизации: предоставлен некорректный токен доступа.
     """
 
-    status_code = 401
     error_code = "INVALID_TOKEN"
     message = "The provided token is malformed or invalid."
-    headers = {"WWW-Authenticate": "Bearer"}
 
 
-class TokenExpiredError(BaseHTTPException):
+class TokenExpiredError(BaseAuthError):
     """
     Ошибка авторизации: истёк срок действия токена доступа.
     """
 
-    status_code = 401
     error_code = "TOKEN_EXPIRED"
     message = "The access token has expired."
-    headers = {"WWW-Authenticate": "Bearer"}
 
 
 class UserNotFoundError(BaseHTTPException):
