@@ -4,10 +4,11 @@ version = "0.1.0"
 description = "Двухсервисная система LLM-консультаций"
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = ["auth_service"]
+dependencies = ["auth_service", "bot_service"]
 
 [tool.uv.sources]
 auth_service = { workspace = true }
+bot_service = { workspace = true }
 
 [tool.uv.workspace]
-members = ["auth_service"]
+members = ["auth_service", "bot_service"]
