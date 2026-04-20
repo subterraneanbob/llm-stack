@@ -12,3 +12,15 @@ class OpenRouterError(ApplicationBaseError):
     """
     Ошибка при взаимодействии с сервисом OpenRouter.ai
     """
+
+
+class InvalidTokenError(ApplicationBaseError):
+    """
+    Ошибка авторизации: предоставлен некорректный токен доступа.
+    """
+
+
+class TokenExpiredError(ApplicationBaseError):
+    """
+    Ошибка авторизации: истёк срок действия токена доступа.
+    """

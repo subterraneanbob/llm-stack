@@ -3,6 +3,7 @@ from typing import Any
 from jose import ExpiredSignatureError, JWTError, jwt
 
 from app.core.config import settings
+from app.core.errors import InvalidTokenError, TokenExpiredError
 
 
 def decode_and_validate(token: str) -> dict[str, Any]:
@@ -20,6 +21,6 @@ def decode_and_validate(token: str) -> dict[str, Any]:
     try:
         return jwt.decode(token, settings.jwt_secret, settings.jwt_alg)
     except ExpiredSignatureError as ex:
-        raise ValueError("Access token is expired.") from ex
+        raise TokenExpiredError("Access token is expired.") from ex
     except (JWTError, ValueError) as ex:
-        raise ValueError("Access token is invalid.") from ex
+        raise InvalidTokenError("Access token is invalid.") from ex
