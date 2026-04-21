@@ -8,4 +8,4 @@ celery_app = Celery(
     backend=settings.redis_url,
 )
 
-celery_app.autodiscover_tasks(["app.tasks"])
+celery_app.autodiscover_tasks(["app.tasks"], related_name="llm_tasks")
