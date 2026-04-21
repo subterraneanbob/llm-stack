@@ -46,10 +46,12 @@ def make_chat_completion(prompt: str) -> str:
     """
 
     payload = {
-        "messages": {
-            "role": "user",
-            "content": prompt,
-        },
+        "messages": [
+            {
+                "role": "user",
+                "content": prompt,
+            }
+        ],
         "model": settings.openrouter_model,
     }
 
