@@ -3,7 +3,8 @@ import asyncio
 from aiogram import Bot
 from redis.asyncio import Redis
 
-from app.infra.redis import LLM_RESPONSE_READY_CH, llm_response_key
+from app.infra.redis import LLM_RESPONSE_READY_CH
+from app.tasks.llm_tasks import get_llm_request_results
 
 MESSAGE_SIZE_LIMIT = 4096
 
@@ -77,16 +78,14 @@ class LLMResponseRelay:
         try:
             async for message in pubsub.listen():
                 if message["type"] == "message":
-                    tg_chat_id = message["data"]
-                    response_key = llm_response_key(tg_chat_id)
+                    # Получаем результат выполнения задачи: идентификатор чата и ответ LLM
+                    task_id = message["data"]
+                    tg_chat_id, llm_response = get_llm_request_results(task_id)
 
-                    # Проверяем, что сообщение не пустое, разбиваем ответ LLM на части
-                    # (у Telegram есть ограничение на длину сообщения),
-                    # отправляем пользователю и помечаем ключ Redis на удаление.
-                    if (llm_response := await self.redis.get(response_key)) is not None:
+                    # Отправляем ответ по частям (у Telegram есть ограничение на длину сообщения)
+                    if tg_chat_id and llm_response:
                         for text_part in split_text(llm_response):
                             await bot.send_message(tg_chat_id, text_part)
 
-                        await self.redis.unlink(response_key)
         except asyncio.CancelledError:
             await pubsub.unsubscribe(LLM_RESPONSE_READY_CH)
