@@ -1,0 +1,14 @@
+services:
+  rabbitmq:
+    image: rabbitmq:4.2.5-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+
+  redis:
+    image: redis:8.4.2-alpine3.22
+    ports:
+      - "6379:6379"
