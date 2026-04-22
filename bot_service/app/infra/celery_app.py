@@ -1,6 +1,12 @@
 from celery import Celery
+from celery.app import trace
 
 from app.core.config import settings
+
+# Убираем логирование ответов от LLM из сообщения о выполнении задачи
+trace.LOG_SUCCESS = """\
+Task %(name)s[%(id)s] succeeded in %(runtime)ss\
+"""
 
 celery_app = Celery(
     "bot_tasks",
