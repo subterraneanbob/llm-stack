@@ -1,3 +1,5 @@
+from typing import Any
+
 from aiogram import F, Router
 from aiogram.enums.chat_type import ChatType
 from aiogram.filters import Command, CommandObject, CommandStart
@@ -16,7 +18,9 @@ router = Router()
 router.message.filter(F.chat.type == ChatType.PRIVATE)
 
 
-async def validate_token_and_reply(token: str, message: Message) -> bool:
+async def validate_token_and_reply(
+    token: str, message: Message
+) -> dict[str, Any] | None:
     """
     Проверяет токен доступа и отправляет инструкцию пользователю,
     если токен неверный или истёк срок действия.
@@ -26,11 +30,11 @@ async def validate_token_and_reply(token: str, message: Message) -> bool:
         message (Message): Сообщение чата, на которое нужно дать ответ с инструкцией.
 
     Returns:
-        bool: True, если проверка токена прошла успешно, иначе False.
+        dict[str, Any] | None: Словарь полей, указанных в токене, или None,
+            если токен не удалось проверить.
     """
     try:
-        decode_and_validate(token)
-        return True
+        return decode_and_validate(token)
     except TokenExpiredError:
         await message.answer(
             (
@@ -47,8 +51,6 @@ async def validate_token_and_reply(token: str, message: Message) -> bool:
                 "а затем выполните команду /token <JWT>."
             )
         )
-
-    return False
 
 
 @router.message(CommandStart())
@@ -79,10 +81,12 @@ async def token_handler(message: Message, command: CommandObject):
         )
         return
 
-    if not await validate_token_and_reply(token, message):
+    if not (claims := await validate_token_and_reply(token, message)):
         return
 
-    await get_redis().set(token_key(message.from_user.id), token)
+    await get_redis().set(
+        token_key(message.from_user.id), token, exat=claims.get("exp")
+    )
 
     await message.answer("Токен сохранён. Теперь можете отправить запрос LLM.")
 

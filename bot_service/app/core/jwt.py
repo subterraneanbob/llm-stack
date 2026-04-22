@@ -19,7 +19,9 @@ def decode_and_validate(token: str) -> dict[str, Any]:
     """
 
     try:
-        return jwt.decode(token, settings.jwt_secret, settings.jwt_alg)
+        return jwt.decode(
+            token, settings.jwt_secret, settings.jwt_alg, options={"require_exp": True}
+        )
     except ExpiredSignatureError as ex:
         raise TokenExpiredError("Access token is expired.") from ex
     except (JWTError, ValueError) as ex:
