@@ -37,7 +37,7 @@ async def test_token_save(mock_redis, mock_message, access_token):
     # Бот сохраняет корректный токен в Redis и сообщает об этом пользователю.
     await token_handler(mock_message.object, token_command(access_token))
 
-    mock_redis.validate_token(mock_message.tg_chat_id, access_token)
+    await mock_redis.validate_token(mock_message.tg_chat_id, access_token)
     mock_message.validate_reply(BotMessage.TOKEN_SAVED)
 
 
