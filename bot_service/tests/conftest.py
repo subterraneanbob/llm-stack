@@ -1,3 +1,4 @@
+import json
 import random
 import time
 from typing import NamedTuple
@@ -5,8 +6,10 @@ from unittest.mock import AsyncMock, MagicMock
 
 from aiogram.filters import CommandObject
 from fakeredis import FakeAsyncRedis
+from httpx import Response
 import pytest
 from jose import jwt
+import respx
 
 
 from app.core.config import settings
@@ -112,6 +115,49 @@ class MockLLMRequestTask:
 
     def was_not_triggered(self):
         self.object.assert_not_called()
+
+
+class MockOpenRouterClient:
+    """
+    Тестовый двойник HTTP-клиента для Openrouter.
+    """
+
+    OPENROUTER_ENDPOINT = "https://openrouter.ai/api/v1/chat/completions"
+
+    def __init__(self, router: respx.MockRouter):
+        self.router = router
+        self.setup("Test response")
+
+    def setup(self, response_text: str):
+        """
+        Устанавливает текст ответа.
+        """
+        self.route = self.router.post(self.OPENROUTER_ENDPOINT).mock(
+            return_value=Response(
+                200,
+                json={
+                    "choices": [
+                        {"message": {"role": "assistant", "content": response_text}}
+                    ]
+                },
+            )
+        )
+
+    def verify_route_call(self):
+        """
+        Проверяет, что HTTP вызов к /chat/completions был сделан.
+        """
+        assert self.route.called
+        assert self.route.call_count == 1
+
+    def verify_request(self, prompt: str):
+        """
+        Проверяет, что в теле запроса содержится запрос пользователя.
+        """
+        last_request = self.route.calls.last.request
+        payload = json.loads(last_request.content)
+
+        assert payload["messages"][0]["content"] == prompt
 
 
 class AccessTokenWithClaims(NamedTuple):
@@ -244,3 +290,9 @@ def mock_message():
 @pytest.fixture
 def mock_llm_request_task(mocker):
     return MockLLMRequestTask(mocker)
+
+
+@pytest.fixture
+def mock_openrouter_client():
+    with respx.mock() as mock_router:
+        yield MockOpenRouterClient(mock_router)
