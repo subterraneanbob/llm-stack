@@ -1,14 +1,83 @@
 services:
-  rabbitmq:
-    image: rabbitmq:4.2.5-management-alpine
+  auth_service:
+    image: auth_service:0.1.0
+    build:
+      dockerfile: Containerfile
+      context: .
+      args:
+        - SERVICE_NAME=auth_service
     ports:
-      - "5672:5672"
+      - "8000:80"
+    env_file:
+      - auth_service/.env
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  bot_service:
+    image: bot_service:0.1.0
+    build:
+      dockerfile: Containerfile
+      context: .
+      args:
+        - SERVICE_NAME=bot_service
+    ports:
+      - "8001:80"
+    env_file:
+      - bot_service/.env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  bot_service_tasks:
+    image: bot_service_tasks:0.1.0
+    build:
+      dockerfile: Containerfile
+      context: .
+      args:
+        - SERVICE_NAME=bot_service
+    command: celery -A app.infra.celery_app.celery_app worker --loglevel=info
+    env_file:
+      - bot_service/.env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    healthcheck:
+      test: [ "CMD", "celery", "-A", "app.infra.celery_app.celery_app", "inspect", "ping" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  rabbitmq:
+    image: rabbitmq:4.2.6-management-alpine
+    ports:
       - "15672:15672"
     environment:
       - RABBITMQ_DEFAULT_USER=guest
       - RABBITMQ_DEFAULT_PASS=guest
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "-q", "ping" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
   redis:
-    image: redis:8.4.2-alpine3.22
-    ports:
-      - "6379:6379"
+    image: redis:8.6.2-alpine
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
