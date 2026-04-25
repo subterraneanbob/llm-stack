@@ -1,7 +1,7 @@
 from app.services.openrouter_client import make_chat_completion
 
 
-async def test_make_chat_completion(mock_openrouter_client):
+def test_make_chat_completion(mock_openrouter_client):
     # Проверка клиента OpenRouter:
     # - тело запроса содержит заданный промпт
     # - корректный HTTP запрос был отправлен
