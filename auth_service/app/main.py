@@ -24,7 +24,11 @@ async def lifespan(app: FastAPI):
     await engine.dispose()
 
 
-app = FastAPI(title=settings.app_name, lifespan=lifespan)
+app = FastAPI(
+    title=settings.app_name,
+    description="Серверное приложение FastAPI для авторизации пользователей.",
+    lifespan=lifespan,
+)
 app.include_router(api_router)
 
 

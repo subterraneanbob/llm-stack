@@ -31,7 +31,14 @@ async def lifespan(app: FastAPI):
     await polling_task
 
 
-app = FastAPI(title=settings.app_name, lifespan=lifespan)
+app = FastAPI(
+    title=settings.app_name,
+    description=(
+        "Серверное приложение Telegram-бота, которое перенаправляет запросы "
+        "пользователя к OpenRouter и возвращает ответы LLM."
+    ),
+    lifespan=lifespan,
+)
 
 
 @app.get("/health", tags=["system"])
