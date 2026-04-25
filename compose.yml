@@ -10,6 +10,10 @@ services:
       - "8000:80"
     env_file:
       - auth_service/.env
+    environment:
+      - SQLITE_PATH=/data/auth.db
+    volumes:
+      - auth_service_data:/data
     healthcheck:
       test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health" ]
       interval: 30s
@@ -81,3 +85,6 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
+
+volumes:
+  auth_service_data:
