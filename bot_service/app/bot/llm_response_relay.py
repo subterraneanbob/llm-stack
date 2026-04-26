@@ -86,11 +86,13 @@ class LLMResponseRelay:
                     # Отправляем ответ по частям (у Telegram есть ограничение на длину сообщения)
                     if tg_chat_id and llm_response:
                         for text_part in split_text(llm_response):
-                            await bot.send_message(
+                            # Пытаемся отправить ответ в виде Markdown или текста
+                            if not await bot.send_message(
                                 tg_chat_id,
                                 text_part,
                                 parse_mode=ParseMode.MARKDOWN,
-                            )
+                            ):
+                                await bot.send_message(tg_chat_id, text_part)
 
         except asyncio.CancelledError:
             await pubsub.unsubscribe(LLM_RESPONSE_READY_CH)
